@@ -59,6 +59,7 @@ const getAllTransaction = async (req, res, next) => {
       .populate({ path: "categories", model: "Category", select: "slug" });
 
     res.status(200).json({
+      currentDataLength: transaction.length,
       count: count,
       data: transaction,
       paginationData: {
