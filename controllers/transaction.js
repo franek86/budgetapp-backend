@@ -13,6 +13,17 @@ const createTransaction = async (req, res, next) => {
     next(error);
   }
 };
+// @desc    Get Latest five transactiona
+// @route   GET /api/transaction
+// @access  Public
+const getLatestTransactions = async(req, res, next) => {
+  try {
+    const latestTrans = await Transaction.find().limit(5);
+    res.status(200).json(latestTrans)
+  } catch (error) {
+    next(error);
+  }
+}
 
 // @desc    Get transaction
 // @route   GET /api/transaction
@@ -82,7 +93,7 @@ const getAllTransaction = async (req, res, next) => {
 const getSingleTransaction = async (req, res, next) => {
   const { id } = req.params;
   try {
-    const singleTrans = await Transaction.findById(id);
+    const singleTrans = await Transaction.findById(id).populate({ path: "categories", model: "Category", select: "slug" });
 
     if (!singleTrans) {
       res.status(400);
@@ -139,6 +150,7 @@ const deleteTransaction = async (req, res, next) => {
 module.exports = {
   createTransaction,
   getAllTransaction,
+  getLatestTransactions,
   getSingleTransaction,
   updateTransaction,
   deleteTransaction,
