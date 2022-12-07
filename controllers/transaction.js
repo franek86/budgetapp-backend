@@ -18,7 +18,7 @@ const createTransaction = async (req, res, next) => {
 // @access  Public
 const getLatestTransactions = async(req, res, next) => {
   try {
-    const latestTrans = await Transaction.find().limit(5);
+    const latestTrans = await Transaction.find().limit(5).populate({ path: "categories", model: "Category", select: "slug" });
     res.status(200).json(latestTrans)
   } catch (error) {
     next(error);
