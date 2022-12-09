@@ -29,7 +29,7 @@ const getLatestTransactions = async(req, res, next) => {
 // @route   GET /api/transaction
 // @query   Array category, Date firstDate, Date endDate
 // @access  Public
-const getAllTransaction = async (req, res, next) => {
+const getQueryTransaction = async (req, res, next) => {
   const count = await Transaction.count();
   const { firstDate, lastDate, search } = req.query;
   const perPage = parseInt(req.query.perPage) || 10;
@@ -39,11 +39,6 @@ const getAllTransaction = async (req, res, next) => {
   let untilPage;
   fromPage = page === 1 ? 1 : page - 1;
   untilPage = fromPage + 5;
-
-  /*  if(untilPage > totalPage){
-        untilPage = totalPage;
-        fromPage = untilPage - 5;
-    } */
 
   let queryObj = {};
 
@@ -83,6 +78,24 @@ const getAllTransaction = async (req, res, next) => {
         showUntil: perPage * page > count ? count : perPage * page,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Get single transaction
+// @route GET /api/transaction/all
+// @access Public
+const getAllTransaction = async (req, res, next) => {
+  const { firstDate, lastDate } = req.query;
+  try {
+    const transaction = await Transaction.find({
+      date: {
+        $gte: firstDate ? DateTime.fromISO(firstDate).toISO() : DateTime.now().minus({ days: 30 }).toISO(),
+        $lt: lastDate ? DateTime.fromISO(lastDate).toISO() : DateTime.now().toISO(),
+      },
+    }).populate({ path: "categories", model: "Category", select: "slug" });
+    res.status(200).json(transaction);
   } catch (error) {
     next(error);
   }
@@ -150,9 +163,10 @@ const deleteTransaction = async (req, res, next) => {
 
 module.exports = {
   createTransaction,
-  getAllTransaction,
+  getQueryTransaction,
   getLatestTransactions,
   getSingleTransaction,
   updateTransaction,
   deleteTransaction,
+  getAllTransaction
 };
