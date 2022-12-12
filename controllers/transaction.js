@@ -13,6 +13,8 @@ const createTransaction = async (req, res, next) => {
     next(error);
   }
 };
+
+
 // @desc    Get Latest five transactiona
 // @route   GET /api/transaction
 // @access  Public
@@ -168,5 +170,5 @@ module.exports = {
   getSingleTransaction,
   updateTransaction,
   deleteTransaction,
-  getAllTransaction
+  getAllTransaction,
 };

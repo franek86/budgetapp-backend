@@ -15,6 +15,9 @@ const userSchema = new mongoose.Schema({
         type:String,
         require:true,
     },
+    budget:{
+        type: Number,
+    },
     isAdmin:{
         type:Boolean,
         default:false
