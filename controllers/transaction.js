@@ -14,18 +14,17 @@ const createTransaction = async (req, res, next) => {
   }
 };
 
-
 // @desc    Get Latest five transactiona
 // @route   GET /api/transaction
 // @access  Public
-const getLatestTransactions = async(req, res, next) => {
+const getLatestTransactions = async (req, res, next) => {
   try {
     const latestTrans = await Transaction.find().limit(5).populate({ path: "categories", model: "Category", select: "slug" });
-    res.status(200).json(latestTrans)
+    res.status(200).json(latestTrans);
   } catch (error) {
     next(error);
   }
-}
+};
 
 // @desc    Get transaction
 // @route   GET /api/transaction
@@ -50,11 +49,12 @@ const getQueryTransaction = async (req, res, next) => {
 
   if (search) {
     queryObj.title = { $regex: search, $options: "$i" };
-    /*  { categories: { $regex: search, $options: "$i" }} */
   }
 
   try {
+    const user_id = req.user._id;
     const transaction = await Transaction.find({
+      user_id,
       date: {
         $gte: firstDate ? DateTime.fromISO(firstDate).toISO() : DateTime.now().minus({ days: 30 }).toISO(),
         $lt: lastDate ? DateTime.fromISO(lastDate).toISO() : DateTime.now().toISO(),

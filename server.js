@@ -5,7 +5,6 @@ const dotenv = require("dotenv").config();
 const errorHander = require("./middleware/errorHandler");
 const port = process.env.PORT || 5000;
 const connectDB = require("./database/db");
-const cookieParser = require("cookie-parser");
 
 app.use(cors());
 
@@ -24,7 +23,6 @@ app.use("/api/transaction", transactionRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/user", userRoute);
 app.use(errorHander);
-app.use(cookieParser);
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
