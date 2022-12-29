@@ -3,11 +3,12 @@ const { DateTime } = require("luxon");
 
 // @desc    Create transaction
 // @route   POST /api/transaction
-// @access  Public
+// @access  Private
 const createTransaction = async (req, res, next) => {
-  const newTransaction = new Transaction(req.body);
+  const { title, amount, date, categories } = req.body;
+  const user_id = req.user._id;
   try {
-    const saveTransaction = await newTransaction.save();
+    const saveTransaction = await Transaction.create({ title, amount, date, categories, user_id });
     res.status(200).json(saveTransaction);
   } catch (error) {
     next(error);
@@ -16,11 +17,15 @@ const createTransaction = async (req, res, next) => {
 
 // @desc    Get Latest five transactiona
 // @route   GET /api/transaction
-// @access  Public
+// @access  Private
 const getLatestTransactions = async (req, res, next) => {
   try {
-    const latestTrans = await Transaction.find().limit(5).populate({ path: "categories", model: "Category", select: "slug" });
-    res.status(200).json(latestTrans);
+    const latestTrans = await Transaction.find({ user_id: req.user._id }).limit(5).populate({ path: "categories", model: "Category", select: "slug" });
+    if (latestTrans) {
+      res.status(200).json(latestTrans);
+    } else {
+      res.status(404).json({ error: "User not found" });
+    }
   } catch (error) {
     next(error);
   }
@@ -29,7 +34,7 @@ const getLatestTransactions = async (req, res, next) => {
 // @desc    Get transaction
 // @route   GET /api/transaction
 // @query   Array category, Date firstDate, Date endDate
-// @access  Public
+// @access  Private
 const getQueryTransaction = async (req, res, next) => {
   const count = await Transaction.count();
   const { firstDate, lastDate, search } = req.query;
@@ -81,6 +86,7 @@ const getQueryTransaction = async (req, res, next) => {
       },
     });
   } catch (error) {
+    res.status(500).json({ error: "Bad request" });
     next(error);
   }
 };
@@ -99,6 +105,7 @@ const getAllTransaction = async (req, res, next) => {
     }).populate({ path: "categories", model: "Category", select: "slug" });
     res.status(200).json(transaction);
   } catch (error) {
+    res.status(500).json({ error: "Bad request" });
     next(error);
   }
 };
@@ -118,6 +125,7 @@ const getSingleTransaction = async (req, res, next) => {
 
     res.status(200).json({ data: singleTrans, message: `Successfully get transaction by ${id}.` });
   } catch (error) {
+    res.status(500).json({ error: "Bad request" });
     next(error);
   }
 };
@@ -140,6 +148,7 @@ const updateTransaction = async (req, res, next) => {
     const transUpdate = await Transaction.findByIdAndUpdate(id, req.body, { new: true });
     res.status(200).json({ data: transUpdate, message: `Transaction by ${id} successfully updated.` });
   } catch (error) {
+    res.status(500).json({ error: "Bad request" });
     next(error);
   }
 };
@@ -159,6 +168,7 @@ const deleteTransaction = async (req, res, next) => {
     const transDelete = await transId.remove();
     res.status(200).json({ transDelete, message: `Transation by ${id} successfully deleted.` });
   } catch (error) {
+    res.status(500).json({ error: "Bad request" });
     next(error);
   }
 };
