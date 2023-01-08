@@ -2,21 +2,38 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const registerUser = async (req, res, next) => {
-  const { username, email, password } = req.body;
+const registerUser = async (req, res) => {
   try {
-    const salt = bcrypt.genSaltSync(10);
-    const hashPassword = bcrypt.hashSync(password, salt);
+    const { username, email, password } = req.body;
 
-    const newUser = new User({ username, email, password: hashPassword });
-    await newUser.save();
-    res.status(201).json({ newUser, message: "New user has been created." });
+    if (!username || !password || !email) {
+      return res.status(400).json({ message: "All fileds are required." });
+    }
+
+    const duplicateUsername = await User.findOne({ username });
+    const duplicateEmail = await User.findOne({ email });
+
+    if (duplicateUsername || duplicateEmail) {
+      return res.status(409).json({ message: "Duplicate username or email" });
+    }
+
+    const salt = await bcrypt.genSaltSync(10);
+    const hashPassword = await bcrypt.hashSync(password, salt);
+    const userObject = { username, email, password: hashPassword };
+    const user = await User.create(userObject);
+
+    if (user) {
+      res.status(201).json({ message: `New user ${username} created` });
+    } else {
+      res.status(400).json({ message: "Invalid user data received" });
+    }
   } catch (error) {
-    next(error);
+    console.log(error);
+    res.status(400).json({ error: "Bad request" });
   }
 };
 
-const loginUser = async (req, res, next) => {
+const loginUser = async (req, res) => {
   const { username, password } = req.body;
   try {
     if (!username || !password) {
@@ -38,7 +55,6 @@ const loginUser = async (req, res, next) => {
     res.status(200).json({ username, token, message: `Username ${username} successfully login.` });
   } catch (error) {
     res.status(500).json({ error: "Bad request" });
-    next(error);
   }
 };
 
