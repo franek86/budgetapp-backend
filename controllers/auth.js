@@ -17,6 +17,10 @@ const registerUser = async (req, res) => {
       return res.status(409).json({ message: "Duplicate username or email" });
     }
 
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
     const salt = await bcrypt.genSaltSync(10);
     const hashPassword = await bcrypt.hashSync(password, salt);
     const userObject = { username, email, password: hashPassword };
