@@ -1,4 +1,3 @@
-const { restart } = require("nodemon");
 const User = require("../models/User");
 
 // @desc    Get all users
