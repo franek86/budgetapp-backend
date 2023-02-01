@@ -20,22 +20,47 @@ const getAllUser = async (req, res, next) => {
   }
 };
 
+// @desc    Get user
+// @route   GET /api/user/me
+// @access  Private
+const getUserMe = async (req, res, next) => {
+  const user_id = req.user._id;
+
+  try {
+    const userMe = await User.findById(user_id);
+    if (!userMe) {
+      res.status(400);
+      throw new Error("User not found");
+    }
+    //TODO: hide password
+    res.status(200).json(userMe);
+  } catch (error) {
+    res.status(500).json({ error: "Bad request" });
+    next(error);
+  }
+};
+
 // @desc    Create user budget
 // @route   PATCH /api/user/budget/:id
-// @access  Public
+// @access  Private
 const createBudget = async (req, res, next) => {
   const { budget } = req.body;
+
   const { id } = req.params;
 
   try {
     const userExist = await User.findById(id);
+    const currentBudget = userExist.budget;
+    const additionBudget = parseInt(currentBudget, 10) + parseInt(budget, 10);
 
     if (!userExist) {
       res.status(400);
       throw new Error("User not found");
     }
-    const saveUserBudget = await User.findByIdAndUpdate(id, { budget }, { new: true });
-    res.status(200).json({ saveUserBudget });
+    const saveUserBudget = await User.findByIdAndUpdate(id, { budget: additionBudget }, { new: true });
+    const { password, isAdmin, username, email, ...data } = saveUserBudget._doc;
+
+    res.status(200).json({ data });
   } catch (error) {
     res.status(500).json({ error: "Bad request" });
     next(error);
@@ -87,6 +112,7 @@ const deleteUser = async (req, res, next) => {
 
 module.exports = {
   getAllUser,
+  getUserMe,
   updateUser,
   deleteUser,
   createBudget,
