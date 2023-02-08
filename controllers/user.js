@@ -32,8 +32,8 @@ const getUserMe = async (req, res, next) => {
       res.status(400);
       throw new Error("User not found");
     }
-    //TODO: hide password
-    res.status(200).json(userMe);
+    const { password, isAdmin, ...otherDetails } = userMe._doc;
+    res.status(200).json(otherDetails);
   } catch (error) {
     res.status(500).json({ error: "Bad request" });
     next(error);
