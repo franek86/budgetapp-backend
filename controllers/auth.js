@@ -53,16 +53,22 @@ const loginUser = async (req, res) => {
     if (!checkPassword) {
       return res.status(401).json({ message: "Invalid Credentials" });
     }
+    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.TOKEN_SECRET, { expiresIn: "1d" });
+    const { password: pws, ...info } = user._doc;
 
-    const token = jwt.sign({ id: user._id, isAdmin: user.isAdmin }, process.env.SECRET_JWT, { expiresIn: "2 days" });
-
-    res.status(200).json({ id: user._id, username, token, message: `Username ${username} successfully login.` });
+    res.cookie("token", token, { httpOnly: true }).status(200).json(info);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: "Bad request" });
   }
+};
+
+const logoutUser = async (req, res) => {
+  res.clearCookie("token", { sameSite: "none", secure: true }).status(200).send("User has been logged out.");
 };
 
 module.exports = {
   registerUser,
   loginUser,
+  logoutUser,
 };

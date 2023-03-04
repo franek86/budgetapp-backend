@@ -5,13 +5,15 @@ const dotenv = require("dotenv").config();
 const errorHander = require("./middleware/errorHandler");
 const port = process.env.PORT || 5000;
 const connectDB = require("./database/db");
-
-app.use(cors());
+const cookieParser = require("cookie-parser");
 
 //call connect to databsae
 connectDB();
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 const categoryRoute = require("./routes/category");
 const transactionRoute = require("./routes/transaction");

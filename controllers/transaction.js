@@ -20,7 +20,7 @@ const createTransaction = async (req, res, next) => {
 // @access  Private
 const getLatestTransactions = async (req, res, next) => {
   try {
-    const latestTrans = await Transaction.find({ user_id: req.user._id }).limit(5).populate({ path: "categories", model: "Category", select: "slug" });
+    const latestTrans = await Transaction.find({ user_id: req.user._id }).limit(5).sort({ date: -1 }).populate({ path: "categories", model: "Category", select: "slug" });
     if (latestTrans) {
       res.status(200).json(latestTrans);
     } else {
@@ -94,15 +94,9 @@ const getQueryTransaction = async (req, res, next) => {
 // @desc Get single transaction
 // @route GET /api/transaction/all
 // @access Public
-const getAllTransaction = async (req, res, next) => {
-  const { firstDate, lastDate } = req.query;
+const getAllTransactionAmountAndCat = async (req, res, next) => {
   try {
-    const transaction = await Transaction.find({
-      date: {
-        $gte: firstDate ? DateTime.fromISO(firstDate).toISO() : DateTime.now().minus({ days: 30 }).toISO(),
-        $lt: lastDate ? DateTime.fromISO(lastDate).toISO() : DateTime.now().toISO(),
-      },
-    }).populate({ path: "categories", model: "Category", select: "slug" });
+    const transaction = await Transaction.find({}, "amount").populate({ path: "categories", model: "Category", select: "slug" });
     res.status(200).json(transaction);
   } catch (error) {
     res.status(500).json({ error: "Bad request" });
@@ -180,5 +174,5 @@ module.exports = {
   getSingleTransaction,
   updateTransaction,
   deleteTransaction,
-  getAllTransaction,
+  getAllTransactionAmountAndCat,
 };
