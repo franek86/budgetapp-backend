@@ -37,34 +37,30 @@ const getLatestTransactions = async (req, res, next) => {
 // @access  Private
 const getQueryTransaction = async (req, res, next) => {
   const count = await Transaction.count();
-  const { firstDate, lastDate, search } = req.query;
-  const perPage = parseInt(req.query.perPage) || 10;
-  const page = parseInt(req.query.page) || 1;
+  const q = req.query;
+
+  const perPage = parseInt(q.perPage) || 10;
+  const page = parseInt(q.page) || 1;
   const totalPage = Math.ceil(count / perPage);
   let fromPage;
   let untilPage;
   fromPage = page === 1 ? 1 : page - 1;
   untilPage = fromPage + 5;
 
-  let queryObj = {};
-
-  if (req.query.category) {
-    queryObj.categories = req.query.category.split(",");
-  }
-
-  if (search) {
-    queryObj.title = { $regex: search, $options: "$i" };
-  }
+  const filters = {
+    ...(q.categories && { categories: q.categories.split(",") }),
+    ...(q.search && { title: { $regex: q.search, $options: "i" } }),
+    date: {
+      $gte: q.firstDate ? DateTime.fromISO(q.firstDate).toISO() : DateTime.now().minus({ days: 30 }).toISO(),
+      $lt: q.lastDate ? DateTime.fromISO(q.lastDate).toISO() : DateTime.now().toISO(),
+    },
+  };
 
   try {
     const user_id = req.user._id;
     const transaction = await Transaction.find({
       user_id,
-      date: {
-        $gte: firstDate ? DateTime.fromISO(firstDate).toISO() : DateTime.now().minus({ days: 30 }).toISO(),
-        $lt: lastDate ? DateTime.fromISO(lastDate).toISO() : DateTime.now().toISO(),
-      },
-      ...queryObj,
+      ...filters,
     })
       .sort({ date: -1 })
       .skip(perPage * (page - 1))
