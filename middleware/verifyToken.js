@@ -14,7 +14,16 @@ const verifyToken = async (req, res, next) => {
   const checkToken = req.cookies.token;
   if (!checkToken) return res.status(401).json({ message: "You are not authenticated" });
   try {
-    const decode = jwt.verify(checkToken, process.env.TOKEN_SECRET);
+    const decode = jwt.verify(checkToken, process.env.TOKEN_SECRET, (err, res) => {
+      if (err) {
+        return "token expired";
+      }
+      return res;
+    });
+
+    if (decode == "token expired") {
+      return res.send({ data: "token expired" });
+    }
     req.user = await User.findById(decode.id).select("_id");
 
     next();
